@@ -5,12 +5,14 @@ import bcrypt from 'bcrypt';
 import User from './models/User.js';
 import Expense from './models/Expense.js';
 import Income from './models/Income.js';
+import cors from 'cors';
 import { config } from 'dotenv';
 config();
 
 const app = express();
 
 app.use(express.json());
+app.use(cors())
 
 // Connect Database
 try {
