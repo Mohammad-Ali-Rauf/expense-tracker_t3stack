@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import User from './models/User.js';
 import Expense from './models/Expense.js';
+import Income from './models/Income.js';
 import { config } from 'dotenv';
 config();
 
@@ -192,6 +193,85 @@ app.delete('/expenses/:id', verifyToken, async (req, res) => {
     return res
       .status(200)
       .json({ msg: 'Expense deleted successfully' });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/incomes', verifyToken, async (req, res) => {
+  try {
+    const incomes = await Income.find();
+
+    return res.status(200).json(incomes);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/incomes', verifyToken, async (req, res) => {
+  try {
+    const { title, amount, date, desc } = req.body;
+    const userId = req.user.userId;
+
+    const newIncome = new Income({
+      userId: userId,
+      title: title,
+      amount: amount,
+      date: date,
+      desc: desc,
+    });
+
+    await newIncome.save();
+
+    return res
+      .status(201)
+      .json({ msg: 'Income created successfully', newIncome });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch('/incomes/:id', verifyToken, async (req, res) => {
+  try {
+    const { title, amount, date, desc } = req.body;
+    const incomeId = req.params.id;
+
+    const updatedIncome = await Income.findByIdAndUpdate(
+      incomeId,
+      {
+        title: title,
+        amount: amount,
+        date: date,
+        desc: desc,
+      },
+      { new: true }
+    );
+
+    if (!updatedIncome) {
+      return res.status(404).json({ error: 'Income not found' });
+    }
+
+    return res
+      .status(201)
+      .json({ msg: 'Income updated successfully', updatedIncome });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/incomes/:id', verifyToken, async (req, res) => {
+  try {
+    const incomeId = req.params.id;
+
+    const income = await Income.findByIdAndDelete(incomeId);
+
+    if (!income) {
+      return res.status(404).json({ error: 'Income not found' });
+    }
+
+    return res
+      .status(200)
+      .json({ msg: 'Income deleted successfully' });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
